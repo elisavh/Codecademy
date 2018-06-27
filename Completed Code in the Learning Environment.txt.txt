@@ -1,0 +1,252 @@
+========================================================
+BIODIVERSITY PROJECT - PROTECTED SPECIES: 1-4
+========================================================
+
+import codecademylib
+import pandas as pd
+import matplotlib as plt
+species = pd.read_csv('species_info.csv')
+#print(species.head())
+
+# number of species
+species_count = species.scientific_name.nunique()
+print(species_count)
+
+# List of species categories
+species_type = species.category.unique()
+#print(species_type)
+
+# list of conservation statuses
+conservation_statuses = species.conservation_status.unique()
+#print(conservation_statuses)
+
+# number of species per conservation status
+species.fillna('No Intervention', inplace = True)
+conservation_counts_fixed = species.groupby('conservation_status').scientific_name.nunique().reset_index()
+print(conservation_counts_fixed)
+
+
+
+========================================================
+BIODIVERSITY PROJECT - PROTECTED SPECIES: 5
+========================================================
+
+import codecademylib
+import pandas as pd
+from matplotlib import pyplot as plt
+
+species = pd.read_csv('species_info.csv')
+
+species.fillna('No Intervention', inplace = True)
+protection_counts = species.groupby('conservation_status')\
+    .scientific_name.nunique().reset_index()\
+    .sort_values(by='scientific_name')
+
+# create bar chart
+xticks = range(len(protection_counts.conservation_status))
+plt.figure(figsize=(10,4))
+plt.title('Conservation Status by Species')
+plt.ylabel('Number of Species')
+plt.bar(xticks, protection_counts.scientific_name)
+ax = plt.subplot()
+ax.set_xticks(xticks)
+ax.set_xticklabels(protection_counts.conservation_status)
+plt.show()
+
+
+
+========================================================
+BIODIVERSITY PROJECT - PROTECTED SPECIES: 6-7
+========================================================
+
+import codecademylib
+import pandas as pd
+from matplotlib import pyplot as plt
+
+species = pd.read_csv('species_info.csv')
+
+# replace conservation_status NULL by 'No intervention'
+species.fillna('No Intervention', inplace = True)
+
+# add column for indicator: is_protected
+species['is_protected'] = species.conservation_status.apply(lambda status : True if status !='No Intervention' else False)
+
+# create overview of number per category and is_protected
+category_counts = species.groupby(['category', 'is_protected']).scientific_name.nunique().reset_index()
+#print(category_counts)
+category_pivot = category_counts.pivot(
+	columns = 'is_protected',
+  index = 'category',
+  values = 'scientific_name'
+).reset_index()
+category_pivot.columns = ['category', 'not_protected', 'protected']
+category_pivot['percent_protected'] = category_pivot.protected / (category_pivot.protected + category_pivot.not_protected )
+print(category_pivot)
+
+
+
+========================================================
+BIODIVERSITY PROJECT - PROTECTED SPECIES: 8-9
+========================================================
+
+import codecademylib
+import pandas as pd
+from matplotlib import pyplot as plt
+from scipy.stats import chi2_contingency
+
+species = pd.read_csv('species_info.csv')
+check_significance = lambda x: 'P value not significant' if x >= 0.05 else 'P value significant'
+
+# replace conservation_status NULL by 'No intervention'
+species.fillna('No Intervention', inplace = True)
+
+# add column for indicator: is_protected
+species['is_protected'] = species.conservation_status.apply(lambda status : True if status !='No Intervention' else False)
+
+# create overview of number per category and is_protected
+category_counts = species.groupby(['category', 'is_protected']).scientific_name.nunique().reset_index()
+#print(category_counts)
+category_pivot = category_counts.pivot(
+	columns = 'is_protected',
+  index = 'category',
+  values = 'scientific_name'
+).reset_index()
+category_pivot.columns = ['category', 'not_protected', 'protected']
+category_pivot['percent_protected'] = category_pivot.protected / (category_pivot.protected + category_pivot.not_protected )
+print(category_pivot)
+
+# Chi^2 test on Mammals and Birds
+contingency = [[30,146], [75,413]]
+_,pval,_,_ = chi2_contingency(contingency)
+print("\nPvalue_mammals_birds = "+ str(pval))
+print(check_significance(pval))
+
+# Chi^2 test on Mammals and Amphibias
+contingency3 = [[30,146], [7, 72]]
+_,pval_amphibia_mammal,_,_ = chi2_contingency(contingency3)
+print("\nPvalue_mammals_amphibias = " + str(pval_amphibia_mammal))
+print(check_significance(pval_amphibia_mammal))
+
+# Chi^2 test on Mammals and Fish
+contingency4 = [[30,146], [11, 115]]
+_,pval_fish_mammal,_,_ = chi2_contingency(contingency4)
+print("\nPvalue_mammals_fish = " + str(pval_fish_mammal))
+print(check_significance(pval_fish_mammal))
+
+# Chi^2 test on Mammals and Reptiles
+contingency2 = [[30,146], [5,73]]
+_,pval_reptile_mammal,_,_ = chi2_contingency(contingency2)
+print("\nPvalue_mammals_reptiles = " + str(pval_reptile_mammal))
+print(check_significance(pval_reptile_mammal))
+
+# Chi^2 test on Animals and Plants
+animals_protected = 7 + 75 + 11 + 30 + 5
+animals_notprotected = 72 + 413 + 115 + 146 + 73
+plants_protected = 5 + 46
+plants_notprotected = 328 + 4216
+contingency5 = [[animals_protected,animals_notprotected], [plants_protected,plants_notprotected]]
+_,pval_animal_plant,_,_ = chi2_contingency(contingency5)
+print("\nPvalue_animal_plant = " + str(pval_animal_plant))
+print(check_significance(pval_animal_plant))
+
+# Chi^2 test on Nonvascular and Vascular plants
+contingency6 = [[5,328], [46,4216]]
+_,pval_nonvasc_vasc,_,_ = chi2_contingency(contingency6)
+print("\nPvalue_nonvasc_vasc = " + str(pval_nonvasc_vasc))
+print(check_significance(pval_nonvasc_vasc))
+
+# Chi^2 test on birds and reptiles
+contingency7 = [[75,413], [5,73]]
+_,pval_reptile_bird,_,_ = chi2_contingency(contingency7)
+print("\nPvalue_birds_reptiles = " + str(pval_reptile_bird))
+print(check_significance(pval_reptile_bird))
+
+# Chi^2 test on birds and fish
+contingency8 = [[75,413], [11,115]]
+_,pval_fish_bird,_,_ = chi2_contingency(contingency8)
+print("\nPvalue_birds_fish = " + str(pval_fish_bird))
+print(check_significance(pval_fish_bird))
+
+
+
+========================================================
+BIODIVERSITY PROJECT - MOUTH AND FOOT DISEASE: 10-12
+========================================================
+
+import codecademylib
+import pandas as pd
+from matplotlib import pyplot as plt
+
+# process species data file
+species = pd.read_csv('species_info.csv')
+species.fillna('No Intervention', inplace = True)
+species['is_protected'] = species.conservation_status != 'No Intervention'
+
+# process observation data file
+observations = pd.read_csv('observations.csv')
+#print(observations.head())
+
+# Find Sheep! (the mammal kind only)
+find_sheep = lambda x : True if 'Sheep' in x else False
+species['is_sheep'] = species.common_names.apply(find_sheep)
+#species_is_sheep = species[species.is_sheep == True]
+sheep_species = species[(species.is_sheep == True) & (species.category == 'Mammal')]
+# print(sheep_species.head())
+
+# Sheep observations by park
+sheep_observations = pd.merge(sheep_species, observations)
+print(sheep_observations)
+obs_by_park = sheep_observations.groupby('park_name').observations.sum().reset_index()
+print(obs_by_park)
+
+
+
+========================================================
+BIODIVERSITY PROJECT - MOUTH AND FOOT DISEASE: 13
+========================================================
+
+import codecademylib
+import pandas as pd
+from matplotlib import pyplot as plt
+
+species = pd.read_csv('species_info.csv')
+species['is_sheep'] = species.common_names.apply(lambda x: 'Sheep' in x)
+sheep_species = species[(species.is_sheep) & (species.category == 'Mammal')]
+
+observations = pd.read_csv('observations.csv')
+
+sheep_observations = observations.merge(sheep_species)
+
+obs_by_park = sheep_observations.groupby('park_name').observations.sum().reset_index()
+
+#bar chart
+plt.figure(figsize=(16,4))
+park_names = obs_by_park.park_name.unique()
+xticks = range(len(park_names))
+plt.bar(xticks, obs_by_park.observations)
+plt.title('Observations of Sheep per Week')
+plt.ylabel('Number of Observations')
+ax = plt.subplot()
+ax.set_xticks(xticks)
+ax.set_xticklabels(park_names)
+plt.show()
+
+
+
+========================================================
+BIODIVERSITY PROJECT - MOUTH AND FOOT DISEASE: 14-15
+========================================================
+
+baseline = 15
+minimum_detectable_effect = 5./baseline
+significance = 90
+
+sample_size_per_variant = 870.
+
+yellowstone_weeks_observing = sample_size_per_variant / 507
+print(yellowstone_weeks_observing)
+bryce_weeks_observing = sample_size_per_variant / 250
+print(bryce_weeks_observing)
+
+
+
